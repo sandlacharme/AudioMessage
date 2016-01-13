@@ -24,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
     Button bstop;
     EditText chrono;
     boolean recording = false;
+    boolean playing = false;
     AppCompatActivity app;
     final static  RCSMediaPlayer player = new  RCSMediaPlayer();
     final static   RCSRecorder record = new RCSRecorder();
@@ -54,14 +55,16 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 try {
                     bstop.setEnabled(true);
+                    bplay.setEnabled(false);
+                    brecord.setEnabled(false);
                     record.launchRecord();
                     recording = true;
+                    playing = false;
                 } catch (Exception e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
-                brecord.setEnabled(false);
-                bplay.setEnabled(true);
+
                 Toast.makeText(getApplicationContext(), "Recording started", Toast.LENGTH_LONG).show();
             }
 
@@ -72,14 +75,22 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 if (recording) {
-                    record.stopRecord();
+                    record.stopRecord(player);
+                    player.play(record.getOutputFile(),false, chrono);
+                    //chrono.setText("Duration : " + player.getMin() + "mins" + player.getSec() + "secs");
                     recording = false;
                     Toast.makeText(getApplicationContext(), "Audio recorded successfully", Toast.LENGTH_LONG).show();
+                    }
+                if(playing)
+                {
+                    player.stopPlay();
+                    playing=false;
+                    chrono.setText("");
                 }
 
-                if (!brecord.isEnabled()) brecord.setEnabled(true);
-                if (!bplay.isEnabled()) bplay.setEnabled(true);
-                if (!bstop.isEnabled()) bstop.setEnabled(true);
+                brecord.setEnabled(true);
+                bplay.setEnabled(true);
+                bstop.setEnabled(true);
             }
         });
 
@@ -97,10 +108,10 @@ public class MainActivity extends AppCompatActivity {
                     public void fileSelected(File file) {
                         Log.d(getClass().getName(), "selected file " + file.toString());
                         try {
-                            //if (brecord.isEnabled()) brecord.setEnabled(false);
-                            //if (bplay.isEnabled()) bplay.setEnabled(false);
-                             player.play(file.toString());
-                            Log.w("RCSMEDIAPLAYER FILE TO PLAY", "/sdcard/audiorecords/" + file.toString());
+                            player.play(file.toString(),true,chrono);
+                          //  chrono.setText("Duration : " + player.getMin() + "mins" + player.getSec() + "secs");
+                            playing=true;
+
                         } catch (Exception e) {
                         }
                     }

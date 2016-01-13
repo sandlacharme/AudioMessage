@@ -13,7 +13,6 @@ import java.io.IOException;
 
 public class RCSRecorder extends MediaRecorder{
 
-
     //
     private final long MAX_AUDIO_DURATION=100000;
 
@@ -93,9 +92,10 @@ public class RCSRecorder extends MediaRecorder{
 
     }
 
-    public void stopRecord() {
+    public void stopRecord(RCSMediaPlayer pl) {
         try {
             currentRecord.stop();
+
 
         } catch (RuntimeException e) {
             //mFile.delete();  //you must delete the outputfile when the recorder stop failed.
@@ -134,6 +134,8 @@ public class RCSRecorder extends MediaRecorder{
 
 
     }
+
+
 
 
 
