@@ -1,4 +1,4 @@
-package com.gsma.services;
+package com.gsma.services.rcs;
 
 import android.media.MediaPlayer;
 import android.util.Log;
@@ -14,7 +14,11 @@ public class RCSMediaPlayer extends MediaPlayer{
         return bReset;
     }
 
+    public  Observer os;
+
+
     Boolean bReset = false;
+
 
     public int getMin() {
         return min;
@@ -36,7 +40,10 @@ public class RCSMediaPlayer extends MediaPlayer{
 
     }
 
-
+    public void setObserver(Observer o)
+    {
+        os=o;
+    }
     public void initPlayer(String outputfile)
     {
         try {
@@ -49,10 +56,14 @@ public class RCSMediaPlayer extends MediaPlayer{
         }catch (Exception e){}
     }
 
-    public void play (String outputfile, final boolean bPlay, final EditText editText)
+    /**
+     *
+     * @param outputfile
+     * @param bPlay : because this method is used even if there is no file palaying just fro getting duration for a record : bool true : play mode; false record mode
+     */
+    public void play (String outputfile, final boolean bPlay)
     {
         initPlayer(outputfile);
-
         setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mp) {
@@ -67,7 +78,7 @@ public class RCSMediaPlayer extends MediaPlayer{
                         if(duration>0) {
                             min = (int) ((duration / 1000) / 60) % 60;
                             sec = (int) ((duration /1000 ) % 60);
-                            editText.setText("Duration : " + min + "mins" + sec + "secs");
+                            os.NotifyDuration(min, sec);
                         }
                     if(!bPlay) {
                         mp.reset();bReset=true;

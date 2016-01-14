@@ -1,4 +1,4 @@
-package com.gsma.services;
+package com.gsma.services.rcs;
 
 import android.app.Activity;
 import android.app.AlertDialog;

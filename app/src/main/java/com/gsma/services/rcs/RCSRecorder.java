@@ -1,4 +1,4 @@
-package com.gsma.services;
+package com.gsma.services.rcs;
 
 import android.app.Activity;
 import android.media.MediaRecorder;
@@ -14,8 +14,8 @@ import java.io.IOException;
 public class RCSRecorder extends MediaRecorder{
 
     //
-    private final long MAX_AUDIO_DURATION=100000;
-
+    private final long MAX_AUDIO_DURATION=6000;//6sec
+    public  Observer os;
     public String getOutputFile() {
         return outputFile;
     }
@@ -28,33 +28,28 @@ public class RCSRecorder extends MediaRecorder{
     private String outputFile = null;
      MediaRecorder  currentRecord = null;
 
-    public String getLastRecord() {
-        return lastRecord;
-    }
-
-    public static  String lastRecord;
 
     public RCSRecorder()
     {
-
         currentRecord=new MediaRecorder();
        // currentRecord.reset();
 
-
-
     }
 
+    public void setObserver(Observer o)
+    {
+        os=o;
+    }
 
     public void init()
     {
-        currentRecord.setAudioSource(AudioSource.VOICE_COMMUNICATION);
-        currentRecord.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        currentRecord.setAudioEncoder(AudioEncoder.DEFAULT);
 
         //recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
         //currentRecord.setAudioEncoder(MediaRecorder.getAudioSourceMax());
+        currentRecord.setAudioSource(AudioSource.VOICE_COMMUNICATION);
+        currentRecord.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        currentRecord.setAudioEncoder(AudioEncoder.DEFAULT);
         randomFilename();
-
         currentRecord.setOutputFile(outputFile);
         currentRecord.setMaxDuration((int)MAX_AUDIO_DURATION); // 10 seconds
         currentRecord.setOnInfoListener(new OnInfoListener() {
@@ -62,6 +57,7 @@ public class RCSRecorder extends MediaRecorder{
             public void onInfo(MediaRecorder mr, int what, int extra) {
                 if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED) {
                     Log.v("VIDEOCAPTURE", "Maximum Duration Reached");
+                    os.NotifyEndDuration();
                     mr.stop();
                     mr.reset();
 
@@ -95,15 +91,9 @@ public class RCSRecorder extends MediaRecorder{
     public void stopRecord(RCSMediaPlayer pl) {
         try {
             currentRecord.stop();
-
-
+            currentRecord.reset();
         } catch (RuntimeException e) {
             //mFile.delete();  //you must delete the outputfile when the recorder stop failed.
-        } finally {
-
-            currentRecord.reset();
-            //currentRecord.release();
-            lastRecord=outputFile;
         }
 
 

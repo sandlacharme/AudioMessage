@@ -11,9 +11,10 @@ import android.widget.EditText;
 import android.widget.Toast;
 //import android
 
-import com.gsma.services.FileDialog;
-import com.gsma.services.RCSMediaPlayer;
-import com.gsma.services.RCSRecorder;
+import com.gsma.services.rcs.FileDialog;
+import com.gsma.services.rcs.RCSMediaPlayer;
+import com.gsma.services.rcs.RCSRecorder;
+import com.gsma.services.rcs.Observer;
 
 import java.io.File;
 
@@ -26,15 +27,21 @@ public class MainActivity extends AppCompatActivity {
     boolean recording = false;
     boolean playing = false;
     AppCompatActivity app;
+    Observer obs;
+
+
+
     final static  RCSMediaPlayer player = new  RCSMediaPlayer();
     final static   RCSRecorder record = new RCSRecorder();
+
     /**
      * Event called when record duration is reached
      */
     public void endRecordingDuration() {
-        bstop.setEnabled(false);
+        bstop.setEnabled(true);
         brecord.setEnabled(true);
-        brecord.setText("Duration reached : 10 min");
+        bplay.setEnabled(true);
+        Toast.makeText(getApplicationContext(), "End of Duration ", Toast.LENGTH_LONG).show();
 
     }
 
@@ -42,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         app=this;
+        obs=new Observer(this,player,record);
         setContentView(R.layout.activity_main);
         Log.w("RCS", "Path " + Environment.getExternalStorageDirectory().getAbsolutePath());
         //recorder = record;
@@ -50,10 +58,13 @@ public class MainActivity extends AppCompatActivity {
         brecord = (Button) findViewById(R.id.buttonRecord);
         chrono = (EditText) findViewById(R.id.chronometer);
         bstop.setEnabled(false);
+
+
         brecord.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 try {
+                    chrono.setText("");
                     bstop.setEnabled(true);
                     bplay.setEnabled(false);
                     brecord.setEnabled(false);
@@ -76,15 +87,13 @@ public class MainActivity extends AppCompatActivity {
 
                 if (recording) {
                     record.stopRecord(player);
-                    player.play(record.getOutputFile(),false, chrono);
-                    //chrono.setText("Duration : " + player.getMin() + "mins" + player.getSec() + "secs");
+                    player.play(record.getOutputFile(), false);
                     recording = false;
                     Toast.makeText(getApplicationContext(), "Audio recorded successfully", Toast.LENGTH_LONG).show();
-                    }
-                if(playing)
-                {
+                }
+                if (playing) {
                     player.stopPlay();
-                    playing=false;
+                    playing = false;
                     chrono.setText("");
                 }
 
@@ -97,20 +106,22 @@ public class MainActivity extends AppCompatActivity {
         bplay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //Get the file from a list or the last record
 
-               // player.play("/sdcard/audiorecords/recording7624.3gp");
-                File mPath = new File ("/sdcard/audiorecords/");
+                if(playing)
+                {
+                    player.stopPlay();
+                    playing=false;
+                }
+                File mPath = new File("/sdcard/audiorecords/");
                 final String filePath;
-                FileDialog fileDialog = new FileDialog(app,mPath);
+                FileDialog fileDialog = new FileDialog(app, mPath);
                 fileDialog.setFileEndsWith(".3gp");
                 fileDialog.addFileListener(new FileDialog.FileSelectedListener() {
                     public void fileSelected(File file) {
                         Log.d(getClass().getName(), "selected file " + file.toString());
                         try {
-                            player.play(file.toString(),true,chrono);
-                          //  chrono.setText("Duration : " + player.getMin() + "mins" + player.getSec() + "secs");
-                            playing=true;
+                            player.play(file.toString(), true);
+                            playing = true;
 
                         } catch (Exception e) {
                         }
@@ -127,14 +138,21 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        player.release();
-        record.release();
+
+    public  void setDuration(int min, int sec)
+    {
+        chrono.setText("Duration : " +min+ "mins" + sec + "secs");
 
     }
 
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        player.release();
+        record.release();
+        obs.detach();
+
+    }
 
 }
